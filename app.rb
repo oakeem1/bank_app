@@ -59,6 +59,10 @@ class BankApp < Sinatra::Base
     end    
   end
   
+  get '/' do
+   erb :index
+  end
+
   get '/back' do
    redirect back
   end
@@ -127,6 +131,11 @@ class BankApp < Sinatra::Base
 
   get '/user_accounts' do
     if login?
+
+      user = User.first(:username => session[:username])
+      @accounts = Account.all(:user_id => user[:id])
+      redirect '/create_account' if @accounts.empty?
+      
       user = User.first(:username => session[:username])
       @account = user.accounts
       erb :user_accounts
@@ -148,15 +157,25 @@ class BankApp < Sinatra::Base
       if params.has_key?("ok")
         account = Account.first(:id => params[:id])
         old_balance = account[:balance]
-        new_balance = old_balance + params[:amount].to_f
-        account.update(:balance => new_balance)
-        flash.keep
-        flash.now[:success] = "Your account has been credited."
-        redirect '/user_dashboard'
+        if params[:amount].to_f > 0.0
+          new_balance = old_balance + params[:amount].to_f
+          account.update(:balance => new_balance)
+          flash.keep
+          flash.now[:success] = "Your account has been credited."
+          redirect '/user_dashboard'
+        else
+          flash.keep
+          flash[:warning] = 'Amount too low for transaction'
+          redirect '/user_accounts'
+        end
       else
-        redirect '/user_accounts'
+        flash.keep
+        flash[:info] = 'Transaction cancelled'
+        redirect '/user_dashboard'
       end
     else
+      flash.keep
+      flash[:info] = 'You must Login to perform transactions'
       redirect '/login'
     end
   end
@@ -207,6 +226,10 @@ class BankApp < Sinatra::Base
     end
   end
 
+  post '/delete/:id' do
+    redirect '/delete/:id'
+  end
+
   delete '/delete/:id' do
     if login?
       if params.has_key?("ok")
@@ -225,7 +248,7 @@ class BankApp < Sinatra::Base
       flash[:info] = 'You must Login to perform transactions'
       redirect '/login'
     end
-end
+  end
 
 
   get '/logout' do
