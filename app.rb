@@ -18,7 +18,7 @@ class User
   include BCrypt
 
   property :id, Serial, :key => true
-  property :username, String, :required => true, :length => 3..50
+  property :username, String, :required => true, :unique =>true, :length => 3..50
   property :password, BCryptHash, :required => true
   has n, :accounts
 end
@@ -58,10 +58,9 @@ class BankApp < Sinatra::Base
       return session[:username]
     end    
   end
-
-  get '/' do
-    # p test
-    erb :index
+  
+  get '/back' do
+   redirect back
   end
 
   get '/login' do
@@ -70,14 +69,18 @@ class BankApp < Sinatra::Base
 
   post '/login' do
     if User.count(:username => params[:username]) > 0
-      user = User.first(:username => session[:username])
+      user = User.first(:username => params[:username])
       if user[:password] == params[:password]
         session[:username] = params[:username]
+        flash.keep
+        flash[:success] = "You have successfully logged in!"
         redirect '/user_dashboard'
       else
+          flash[:error] = "Login failed"
           redirect '/login'
       end
     else
+      flash[:error] = "Login failed"
       redirect '/login'
     end
   end
@@ -97,7 +100,8 @@ class BankApp < Sinatra::Base
   post '/signup' do
     User.create(:username => params[:username], :password => params[:password])
     session[:username] = params[:username]
-    flash[:signup] = 'Thanks for signing up!'
+    flash.keep
+    flash[:info] = 'Thanks for signing up!'
     redirect '/user_dashboard'
   end
 
@@ -113,7 +117,8 @@ class BankApp < Sinatra::Base
     if login?
       user = User.first(:username => session[:username])
       Account.create(:type => params[:type], :balance => params[:balance], :user_id => user[:id])
-        flash.now[:acc_created] = "The account was successfully created."
+        flash.keep
+        flash.now[:success] = "The account was successfully created."
         redirect '/user_dashboard'
     else
       redirect '/login'
@@ -145,6 +150,8 @@ class BankApp < Sinatra::Base
         old_balance = account[:balance]
         new_balance = old_balance + params[:amount].to_f
         account.update(:balance => new_balance)
+        flash.keep
+        flash.now[:success] = "Your account has been credited."
         redirect '/user_dashboard'
       else
         redirect '/user_accounts'
@@ -171,15 +178,22 @@ class BankApp < Sinatra::Base
         if old_balance >= params[:amount].to_f
           new_balance = old_balance - params[:amount].to_f
           account.update(:balance => new_balance)
+          flash.keep
+          flash.now[:success] = "Your account has been debited."
           redirect '/user_dashboard'
         else
-          flash[:low_fund] = 'Account is too low for transaction'
+          flash.keep
+          flash[:warning] = 'Account too low for transaction'
           redirect '/user_accounts'
         end
       else
+        flash.keep
+        flash[:info] = 'Transaction cancelled'
         redirect '/user_dashboard'
       end
     else
+      flash.keep
+      flash[:info] = 'You must Login to perform transactions'
       redirect '/login'
     end
   end
@@ -198,11 +212,17 @@ class BankApp < Sinatra::Base
       if params.has_key?("ok")
         account = Account.first(:id => params[:id])
         account.destroy
+        flash.keep
+        flash[:success] = 'Account deleted'
         redirect '/user_dashboard'
       else
+        flash.keep
+        flash[:info] = 'Transaction cancelled'
         redirect '/user_dashboard'
       end
     else
+      flash.keep
+      flash[:info] = 'You must Login to perform transactions'
       redirect '/login'
     end
 end
@@ -210,7 +230,8 @@ end
 
   get '/logout' do
     session[:username] = nil
-    flash[:logout] = 'Successfully logged out'
+    flash.keep
+    flash[:success] = 'Successfully logged out'
     redirect '/'
   end
 
