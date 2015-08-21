@@ -1,0 +1,20 @@
+<div class="container">
+    <div class="omb_login">
+    	<h3 class="omb_authTitle">Deposit into Account</h3>
+		<div class="row omb_row-sm-offset-3">
+			<div class="col-xs-12 col-sm-6">	
+				<p>Are you sure you want to delete:</p>
+				<blockquote><p><%= @item.content %></p></blockquote>
+				<form class="omb_loginForm" action="/delete/<%= @item.id %>" autocomplete="off" method="POST">
+					<span class="help-block"></span>
+					<div class="input-group">
+					<input name="_method" type="hidden" value="delete" />
+					</div>
+					<button type="submit" class="btn btn-primary" name="ok">Delete</button>
+					<button type="submit" class="btn" name="cancel">Cancel</button>
+				</form>
+			</div>
+    	</div>
+	</div>
+</div>
+

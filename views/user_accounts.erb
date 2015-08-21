@@ -1,0 +1,33 @@
+ <div class="container">
+    
+
+    <div class="omb_login">
+      <h3 class="omb_authTitle">Accounts Owned by <%=username %></h3>
+      <div class="row omb_row-sm-offset-3">
+         <table class="table table-striped">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Account Type</th>
+              <th>Balance</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% @account.each do |ac| %>                    
+              <tr>
+                <td><%= ac.id %><td>
+                <td><%= ac.type %></td>
+                <td><%= ac.balance %></td>
+                <td><a href="/deposit/<%= ac[:id] %>" class="btn btn-primary">Deposit</a>
+                </td>
+                <td><a href="/withdraw/<%= ac[:id] %>" class="btn btn-success">Withdraw</a>
+                </td>
+                <td><a href="/delete/<%= ac[:id] %>" class="btn btn-danger">Delete</a>
+                </td>
+              </tr>
+            <% end %>
+          </tbody>
+        </table>
+      </div>        
+    </div>
+ </div>
